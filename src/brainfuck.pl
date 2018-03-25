@@ -58,16 +58,21 @@ optimize_instructions([Head|Tail], [Head|Result]) :-
 
 % Optimizes [ ]
 optimize_jumps(In, Out) :-
-	optimize_jumps(In, 0, Out).
-optimize_jumps([], _, []).
-optimize_jumps([open|Tail], Index, [open(TargetIndex)|Result]) :-
+	optimize_jumps(In, 0, [], Out).
+optimize_jumps([], _, _, []).
+optimize_jumps([open|Tail], Index, Jumps, [open(TargetIndex)|Result]) :-
 	NewIndex is Index + 1,
 	find_forward_match(NewIndex, Tail, 0, TargetIndex),
-	optimize_jumps(Tail, NewIndex, Result), !.
-optimize_jumps([Head|Tail], Index, [Head|Result]) :-
+	optimize_jumps(Tail, NewIndex, [jump(Index, TargetIndex)|Jumps], Result), !.
+optimize_jumps([close|Tail], Index, Jumps, [close(TargetIndex)|Result]) :-
 	NewIndex is Index + 1,
-	optimize_jumps(Tail, NewIndex, Result), !.
+	find_backwards_match(Index, Jumps, TargetIndex),
+	optimize_jumps(Tail, NewIndex, Jumps, Result), !.
+optimize_jumps([Head|Tail], Index, Jumps, [Head|Result]) :-
+	NewIndex is Index + 1,
+	optimize_jumps(Tail, NewIndex, Jumps, Result), !.
 
+% Finds the forward matching bracket.
 find_forward_match(Index, [close|_], 0, Index).
 find_forward_match(Index, [open|Tail], Counter, TargetIndex) :-
 	NewIndex is Index + 1,
@@ -81,3 +86,9 @@ find_forward_match(Index, [close|Tail], Counter, TargetIndex) :-
 find_forward_match(Index, [_|Tail], Counter, TargetIndex) :-
 	NewIndex is Index + 1,
 	find_forward_match(NewIndex, Tail, Counter, TargetIndex), !.
+
+% Finds the backward matching bracket.
+find_backwards_match(Index, [jump(TargetIndex, Index)|_], TargetIndex).
+find_backwards_match(Index, [_|Tail], TargetIndex) :-
+	find_backwards_match(Index, Tail, TargetIndex).
+	
