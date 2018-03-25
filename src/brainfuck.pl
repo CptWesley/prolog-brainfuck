@@ -41,12 +41,12 @@ parse_instructions([_|Tail], Result) :-
 
 % Optimizes + - > <
 optimize_instructions([], []).
-optimize_instructions([add(X)|[add(Y)|Tail]], Result) :-
+optimize_instructions([add_cell(X)|[add_cell(Y)|Tail]], Result) :-
 	Z is X + Y,
-	optimize_instructions([add(Z)|Tail], Result), !.
-optimize_instructions([next(X)|[next(Y)|Tail]], Result) :-
+	optimize_instructions([add_cell(Z)|Tail], Result), !.
+optimize_instructions([add_ptr(X)|[add_ptr(Y)|Tail]], Result) :-
 	Z is X + Y,
-	optimize_instructions([next(Z)|Tail], Result), !.
+	optimize_instructions([add_ptr(Z)|Tail], Result), !.
 optimize_instructions([Head|Tail], [Head|Result]) :-
 	optimize_instructions(Tail, Result), !.
 
