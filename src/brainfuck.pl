@@ -24,13 +24,13 @@ parse_instructions([46|Tail], [print|Result]) :-
 	parse_instructions(Tail, Result), !.
 parse_instructions([44|Tail], [take|Result]) :-
 	parse_instructions(Tail, Result), !.
-parse_instructions([43|Tail], [add(1)|Result]) :-
+parse_instructions([43|Tail], [add_cell(1)|Result]) :-
 	parse_instructions(Tail, Result), !.
-parse_instructions([45|Tail], [add(-1)|Result]) :-
+parse_instructions([45|Tail], [add_cell(-1)|Result]) :-
 	parse_instructions(Tail, Result), !.
-parse_instructions([62|Tail], [next(1)|Result]) :-
+parse_instructions([62|Tail], [add_ptr(1)|Result]) :-
 	parse_instructions(Tail, Result), !.
-parse_instructions([60|Tail], [next(-1)|Result]) :-
+parse_instructions([60|Tail], [add_ptr(-1)|Result]) :-
 	parse_instructions(Tail, Result), !.
 parse_instructions([91|Tail], [open|Result]) :-
 	parse_instructions(Tail, Result), !.
