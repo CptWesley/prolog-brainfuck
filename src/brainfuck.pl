@@ -96,6 +96,7 @@ interpret(Instructions) :-
 	create_memory(Memory),
 	interpret(Instructions, Instructions, Memory, 0), !.
 
+interpret(_, [], _, _).
 interpret(AllInstructions, [add_cell(X)|Tail], Memory, MP) :-
 	mutate_memory(Memory, MP, X, NewMemory),
 	interpret(AllInstructions, Tail, NewMemory, MP), !.
