@@ -130,6 +130,11 @@ interpret(AllInstructions, [print|Tail], Memory, MP) :-
     char_code(Char, Code),
     write(Char),
     interpret(AllInstructions, Tail, Memory, MP), !.
+interpret(AllInstructions, [take|Tail], Memory, MP) :-
+    get_char(Char),
+    char_code(Char, Code),
+    mutate_memory(set, Memory, MP, Code, NewMemory),
+    interpret(AllInstructions, Tail, NewMemory, MP), !.
 
 % Memory constants.
 memory_size(30000).
