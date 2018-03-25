@@ -90,13 +90,43 @@ find_backwards_match(Index, [_|Tail], TargetIndex) :-
 interpret(String) :-
 	string(String),
 	parse(String, Instructions),
-	interpret(Instructions).
+	interpret(Instructions), !.
 interpret(Instructions) :-
 	is_list(Instructions),
 	create_memory(Memory),
-	interpret(Instructions, 0, Memory, 0).
+	interpret(Instructions, Instructions, Memory, 0), !.
 
-interpret(Instructions, PC, Memory, MP) :- fail.
+interpret(AllInstructions, [add_cell(X)|Tail], Memory, MP) :-
+	mutate_memory(Memory, MP, X, NewMemory),
+	interpret(AllInstructions, Tail, NewMemory, MP), !.
+interpret(AllInstructions, [add_ptr(X)|Tail], Memory, MP) :-
+	memory_size(Size),
+	TempMP is MP + X,
+	NewMP is TempMP mod Size,
+	interpret(AllInstructions, Tail, Memory, NewMP), !.
+interpret(AllInstructions, [open(X)|_], Memory, MP) :-
+	nth0(MP, Memory, Value),
+	Value = 0,
+	goto(AllInstructions, X, NewInstructions),
+	interpret(AllInstructions, NewInstructions, Memory, MP), !.
+interpret(AllInstructions, [open(_)|Tail], Memory, MP) :-
+	nth0(MP, Memory, Value),
+	Value > 0,
+	interpret(AllInstructions, Tail, Memory, MP), !.
+interpret(AllInstructions, [close(X)|_], Memory, MP) :-
+	nth0(MP, Memory, Value),
+	Value > 0,
+	goto(AllInstructions, X, NewInstructions),
+	interpret(AllInstructions, NewInstructions, Memory, MP), !.
+interpret(AllInstructions, [close(_)|Tail], Memory, MP) :-
+	nth0(MP, Memory, Value),
+	Value = 0,
+	interpret(AllInstructions, Tail, Memory, MP), !.
+interpret(AllInstructions, [print|Tail], Memory, MP) :-
+	nth0(MP, Memory, Code),
+	char_code(Char, Code),
+	write(Char),
+	interpret(AllInstructions, Tail, Memory, MP), !.
 
 % Memory constants.
 memory_size(30000).
@@ -118,4 +148,10 @@ mutate_memory([Head|Tail], Index, Change, [Head|Result]) :-
 	Index > 0,
 	NewIndex is Index - 1,
 	mutate_memory(Tail, NewIndex, Change, Result).
-	
+
+% Jump to index in memory.
+goto(Instructions, 0, Instructions).
+goto([_|Tail], Index, Result) :-
+	Index > 0,
+	NewIndex is Index - 1,
+	goto(Tail, NewIndex, Result).
