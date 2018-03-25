@@ -92,3 +92,36 @@ find_backwards_match(Index, [jump(TargetIndex, Index)|_], TargetIndex).
 find_backwards_match(Index, [_|Tail], TargetIndex) :-
 	find_backwards_match(Index, Tail, TargetIndex).
 	
+% Interpret brainfuck code.
+interpret(String) :-
+	string(String),
+	parse(String, Instructions),
+	interpret(Instructions).
+interpret(Instructions) :-
+	is_list(Instructions),
+	create_memory(Memory),
+	interpret(Instructions, 0, Memory, 0).
+
+interpret(Instructions, PC, Memory, MP) :- fail.
+
+% Memory constants.
+memory_size(30000).
+cell_size(256).
+
+% Creates empty memory.
+create_memory(Memory) :-
+	memory_size(Size),
+	length(Memory, Size),
+	maplist(=(0), Memory).
+
+% Updates memory.
+mutate_memory([Head|Tail], 0, Change, [NewValue|Tail]) :-
+	TempValue is Head + Change,
+	cell_size(CellSize),
+	Max is CellSize - 1,
+	NewValue is TempValue mod Max.
+mutate_memory([Head|Tail], Index, Change, [Head|Result]) :-
+	Index > 0,
+	NewIndex is Index - 1,
+	mutate_memory(Tail, NewIndex, Change, Result).
+	
