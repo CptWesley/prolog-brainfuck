@@ -100,7 +100,7 @@ interpret(Instructions) :-
 
 interpret(_, [], _, _).
 interpret(AllInstructions, [add_cell(X)|Tail], Memory, MP) :-
-    mutate_memory(Memory, MP, X, NewMemory),
+    mutate_memory(add, Memory, MP, X, NewMemory),
     interpret(AllInstructions, Tail, NewMemory, MP), !.
 interpret(AllInstructions, [add_ptr(X)|Tail], Memory, MP) :-
     memory_size(Size),
@@ -142,15 +142,16 @@ create_memory(Memory) :-
     maplist(=(0), Memory).
 
 % Updates memory.
-mutate_memory([Head|Tail], 0, Change, [NewValue|Tail]) :-
-    TempValue is Head + Change,
+mutate_memory(add, [Head|Tail], 0, Value, [NewValue|Tail]) :-
+    TempValue is Head + Value,
     cell_size(CellSize),
     Max is CellSize - 1,
     NewValue is TempValue mod Max.
-mutate_memory([Head|Tail], Index, Change, [Head|Result]) :-
+mutate_memory(set, [_|Tail], 0, Value, [Value|Tail]).
+mutate_memory(Type, [Head|Tail], Index, Value, [Head|Result]) :-
     Index > 0,
     NewIndex is Index - 1,
-    mutate_memory(Tail, NewIndex, Change, Result).
+    mutate_memory(Type, Tail, NewIndex, Value, Result).
 
 % Jump to index in memory.
 goto(Instructions, 0, Instructions).
